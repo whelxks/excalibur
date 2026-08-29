@@ -11,7 +11,7 @@ export function ChatHeader({ name, image, activityName, city, onBack, onPressPro
       {image ? <Image source={{ uri: image }} style={s.avatar}/> : <View style={[s.avatar, s.avatarFallback]}/>}
       <View style={{ flex: 1 }}>
         <Text style={s.name} numberOfLines={1}>{name}</Text>
-        <Text style={s.activity} numberOfLines={1}>{activityName} · {city}</Text>
+        <Text style={s.activity} numberOfLines={1}><Text style={s.city}>{city.toUpperCase()}</Text>  {activityName}</Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color={colors.muted}/>
     </Pressable>
@@ -25,4 +25,5 @@ const s = StyleSheet.create({
   avatarFallback: { borderWidth: 1, borderColor: colors.line },
   name: { fontFamily: 'Fraunces_700Bold', fontSize: 19, color: colors.ink },
   activity: { fontFamily: 'DMSans_500Medium', fontSize: 10, color: colors.muted, marginTop: 1 },
+  city: { fontFamily: 'DMSans_700Bold', fontSize: 9, letterSpacing: 1.1, color: colors.terra },
 });

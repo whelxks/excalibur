@@ -8,7 +8,7 @@ import { Composer } from '@/components/chat/Composer';
 import { MessageList } from '@/components/chat/MessageList';
 import { QuickReplies } from '@/components/chat/QuickReplies';
 import { currentUser, ensureMatchChannel, matchFromId } from '@/lib/matches';
-import { hasStream, streamClient } from '@/lib/stream';
+import { connectStreamUser, hasStream, streamClient } from '@/lib/stream';
 import { colors } from '@/lib/theme';
 
 export default function Chat(){
@@ -23,6 +23,7 @@ export default function Chat(){
    if(!hasStream){setError('Add EXPO_PUBLIC_STREAM_API_KEY to .env to enable chat.');return}
    if(!match){setError('This match no longer exists.');return}
    try{
+     await connectStreamUser(currentUser); if(!live)return;
      const ch=await ensureMatchChannel(match); if(!live||!ch)return;
      setChannel(ch); setMessages([...ch.state.messages] as MessageResponse[]);
      await ch.markRead();
