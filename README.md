@@ -11,9 +11,8 @@ A mobile-first cultural travel marketplace for tiny groups (1–3 tourists), ver
 - Activity details + safety/verification presentation
 - Tinder-style swipe deck for choosing a host
 - Host-side traveller review + accept/pass workflow
-- Group-chat screen
-- Client-side encrypted message storage foundation using TweetNaCl `secretbox`
-- Public-key wrapping helpers for distributing a random chat key per member
+- Match-unlocked 1:1 messaging on Stream Chat (conversations list + chat screen)
+- Client-side encryption helpers using TweetNaCl `secretbox` (see note below — no longer wired to the UI)
 - Journal with collectible passport-style badges and notes
 - Firefly dark-mode resource cache
 - Firefly **QR share + camera scan + deterministic cache merge** that works locally without a backend handshake
@@ -33,6 +32,47 @@ npx expo start
 
 Scan the Expo QR with a phone or launch a simulator.
 
+## Messaging (Stream Chat)
+
+Chat runs on [Stream](https://getstream.io). A Stream channel of type `messaging`
+represents one match; the match ID is the channel ID, so creating a channel twice
+is a no-op. The activity name and city ride along as custom channel data, which is
+what the chat header and the conversations list render.
+
+1. Create a Stream app and copy the **Key** and **Secret**.
+2. `cp .env.example .env` and fill in `EXPO_PUBLIC_STREAM_API_KEY` and `STREAM_API_SECRET`.
+3. Generate a token for the demo traveller and add it to `.env`:
+
+```bash
+node --env-file=.env scripts/stream-token.mjs alex
+```
+
+4. Seed the demo conversations:
+
+```bash
+npm run seed:chat
+```
+
+Without `EXPO_PUBLIC_STREAM_API_KEY` the app still runs — the Messages tab just
+shows an empty state, the same way the app falls back to mock data without Supabase.
+
+### Why a signed token and not `devToken`
+
+Stream only accepts `client.devToken()` on apps with **Disable Auth Checks**
+enabled, and it refuses that flag on Production apps (`error 17`). So
+`scripts/stream-token.mjs` pre-generates a long-lived signed user token instead.
+This still needs no token server, and is narrower than a dev token: it authorises
+one user, rather than letting anyone holding the public key connect as anyone.
+
+Before production, replace the static token with a real token endpoint that mints
+short-lived tokens after authenticating the user.
+
+### Seeded timestamps
+
+`message.created_at` is reserved by Stream, and genuine backdating requires their
+paid import API. Seeded messages therefore carry a custom `sent_at` field, and the
+UI renders that in preference to `created_at` (`src/lib/chatFormat.ts`).
+
 ## Connect the real backend
 
 1. Create a Supabase project.
@@ -50,6 +90,13 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 Supabase's current Expo quickstart uses `@supabase/supabase-js`, Expo-compatible session persistence, and `EXPO_PUBLIC_*` environment variables; this project follows that pattern.
 
 ## Encryption design
+
+> **Status:** superseded. The group chat screen now runs on Stream Chat, which
+> stores message text server-side, so the encrypted path below is no longer
+> reachable from the UI. `src/lib/crypto.ts`, `src/lib/chat.ts` and the
+> `chat_key_envelopes` table are all still present. Re-wiring them means either
+> encrypting message text before handing it to Stream, or moving messaging back
+> onto Supabase.
 
 `src/lib/crypto.ts` implements a practical **E2EE foundation** rather than pretending plain TLS is end-to-end encryption:
 
@@ -83,19 +130,27 @@ app/
   activity/[id].tsx         activity details
   swipe/[activityId].tsx    host swipe deck
   host-dashboard.tsx        host reviews tourists
-  chat/[id].tsx             encrypted group chat UI
+  chat/[id].tsx             Stream chat screen (custom header + quick replies)
+  host/[id].tsx             host profile
+  (tabs)/messages.tsx       conversations list
   (tabs)/journal.tsx        badges + notes
   (tabs)/firefly.tsx        offline resources
   firefly-sync.tsx          QR share / scan
   (tabs)/profile.tsx        traveller identity + host switch
 src/
   lib/crypto.ts             encryption helpers
-  lib/chat.ts               encrypted message persistence
+  lib/chat.ts               encrypted message persistence (unused, see above)
+  lib/stream.ts             Stream client + connection
+  lib/matches.ts            match model + channel creation
+  components/chat/          themed message list, bubbles, composer, quick replies
   lib/firefly.ts            offline resource cache + merge
   lib/supabase.ts           backend client
   lib/mockData.ts           instant demo dataset
 supabase/
   schema.sql                backend schema + RLS + matching trigger
+scripts/
+  seed-chat.mjs             demo conversations
+  stream-token.mjs          signed user token generator
 ```
 
 ## Product rules represented
