@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Every Tourist",
+    "slug": "every-tourist",
+    "scheme": "everytourist",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router", "expo-secure-store", ["expo-camera", {"cameraPermission":"Allow Every Tourist to scan Firefly sync codes."}]],
+    "ios": {"supportsTablet": true, "bundleIdentifier": "com.everytourist.app"},
+    "android": {"package": "com.everytourist.app"},
+    "web": {"bundler": "metro"},
+    "experiments": {"typedRoutes": false}
+  }
+}
