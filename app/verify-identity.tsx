@@ -165,7 +165,6 @@ export default function VerifyIdentityScreen() {
         setFields(data);
         setStep("review");
       } catch (e) {
-        console.log(e);
         setError(
           "Couldn't read the passport. Try a clearer, well-lit photo of the photo page.",
         );

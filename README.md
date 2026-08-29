@@ -174,7 +174,7 @@ The remote Unsplash photography in `mockData.ts` is prototype content only; repl
 1. Ensure you have node downloaded
    https://nodejs.org/en/download
 
-2. Create .env file and replace key, values by asking any team member
+2. Create .env file and replace key, values by asking any team member. Refer to .env.example for format
 
 3. Run these commands
 
@@ -186,3 +186,8 @@ npx expo start
 
 4. View locally
    http://localhost:8081
+
+# To make sure chat works
+```
+npx tsx scripts/seed-stream-users.ts
+```

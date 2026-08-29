@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import type { Channel, MessageResponse } from "stream-chat";
+import type { Channel, LocalMessage } from "stream-chat";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { Composer } from "@/components/chat/Composer";
 import { MessageList } from "@/components/chat/MessageList";
@@ -23,7 +23,7 @@ export default function Chat() {
   const router = useRouter();
   const match = matchFromId(id || "");
   const [channel, setChannel] = useState<Channel | null>(null);
-  const [messages, setMessages] = useState<MessageResponse[]>([]);
+  const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
@@ -45,7 +45,7 @@ export default function Chat() {
         const ch = await ensureMatchChannel(match);
         if (!live || !ch) return;
         setChannel(ch);
-        setMessages([...ch.state.messages] as MessageResponse[]);
+        setMessages([...ch.state.messages] as LocalMessage[]);
         await ch.markRead();
       } catch (e: any) {
         if (live) setError(e?.message ?? "Could not open this conversation.");
@@ -60,7 +60,7 @@ export default function Chat() {
   useEffect(() => {
     if (!channel) return;
     const handler = () => {
-      setMessages([...channel.state.messages] as MessageResponse[]);
+      setMessages([...channel.state.messages] as LocalMessage[]);
       channel.markRead().catch(() => {});
     };
     channel.on("message.new", handler);
