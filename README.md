@@ -1,4 +1,5 @@
 # EVERY TOURIST
+
 ### Don’t visit. Belong for a moment.
 
 A mobile-first cultural travel marketplace for tiny groups (1–3 tourists), verified local hosts, mutual matching, encrypted group chat, collectible travel journals, and **Firefly** offline emergency-resource exchange.
@@ -169,16 +170,19 @@ Add real authentication screens, payments/payouts, host identity/KYC provider, b
 The remote Unsplash photography in `mockData.ts` is prototype content only; replace it with licensed host/activity media before release.
 
 # How to run
+
 1. Ensure you have node downloaded
-https://nodejs.org/en/download
+   https://nodejs.org/en/download
 
+2. Create .env file and replace key, values by asking any team member
 
-2. Run these commands
+3. Run these commands
+
 ```
-node -v 
+node -v
 npm i
 npx expo start
 ```
 
-3. View locally 
-http://localhost:8081
+4. View locally
+   http://localhost:8081

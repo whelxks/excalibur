@@ -24,6 +24,7 @@ export type Host = {
   bio: string;
   languages: string[];
   badges: string[];
+  certifications: string[]; // activity-specific qualifications, e.g. "Advanced First Aid", "Working With Children Check"
   rating: number;
   verified: boolean;
 };
@@ -47,8 +48,8 @@ export type BadgeType = {
 export type FireflyResource = {
   id: string;
   name: string;
-  type: 'water' | 'power' | 'firstaid' | 'toilet' | 'shelter' | 'connectivity';
-  status: 'available' | 'limited' | 'unavailable';
+  type: "water" | "power" | "firstaid" | "toilet" | "shelter" | "connectivity";
+  status: "available" | "limited" | "unavailable";
   updatedAt: number;
   reports: number;
   confidence: number;

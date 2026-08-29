@@ -1,14 +1,258 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/lib/theme';
-import { Brand } from '@/components/Brand';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "@/lib/theme";
+import { Brand } from "@/components/Brand";
+import DebugBar from "@/components/RoleBar";
+import { useState } from "react";
+import { useVerificationStore } from "@/store/verificationStore";
 
-export default function Profile(){const router=useRouter(); return <SafeAreaView style={s.safe}><ScrollView contentContainerStyle={s.page}><Brand/><View style={s.profile}><Image source={{uri:'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=600&q=85'}} style={s.avatar}/><Text style={s.name}>Alex Morgan</Text><Text style={s.bio}>Curious eater · architecture nerd · usually awake before sunrise when travelling.</Text><View style={s.tags}><Text style={s.tag}>ENGLISH</Text><Text style={s.tag}>FOOD</Text><Text style={s.tag}>ART</Text><Text style={s.tag}>LOW-KEY</Text></View></View>
- <View style={s.score}><View><Text style={s.scoreBig}>4</Text><Text style={s.scoreSmall}>LOCAL DAYS</Text></View><View><Text style={s.scoreBig}>3</Text><Text style={s.scoreSmall}>BADGES</Text></View><View><Text style={s.scoreBig}>5.0</Text><Text style={s.scoreSmall}>GUEST RATING</Text></View></View>
- <Text style={s.label}>TRUST & IDENTITY</Text><View style={s.row}><Ionicons name="shield-checkmark" size={22} color={colors.forest}/><View style={{flex:1}}><Text style={s.rowTitle}>Traveller identity verified</Text><Text style={s.rowSub}>Hosts can see your verification before accepting.</Text></View><Ionicons name="checkmark-circle" size={20} color={colors.moss}/></View>
- <Text style={s.label}>LOCAL SIDE</Text><Pressable onPress={()=>router.push('/host-dashboard')} style={s.host}><View><Text style={s.hostK}>LIVE DIFFERENTLY AT HOME</Text><Text style={s.hostT}>Switch to host mode</Text><Text style={s.hostSub}>List a tiny local experience for 1–3 visitors.</Text></View><Ionicons name="arrow-forward-circle" size={36} color={colors.gold}/></Pressable>
- <Text style={s.label}>SAFETY</Text>{['Emergency contact','Blocked & reported users','Privacy & encrypted chats'].map((x,i)=><View key={x} style={s.simple}><Ionicons name={i===0?'call-outline':i===1?'ban-outline':'lock-closed-outline'} size={19} color={colors.muted}/><Text style={s.simpleT}>{x}</Text><Ionicons name="chevron-forward" size={18} color="#A69E94"/></View>)}
- </ScrollView></SafeAreaView>}
-const s=StyleSheet.create({safe:{flex:1,backgroundColor:colors.paper},page:{padding:18,paddingBottom:50},profile:{alignItems:'center',paddingTop:32},avatar:{width:112,height:112,borderRadius:56,borderWidth:5,borderColor:colors.cream},name:{fontFamily:'Fraunces_700Bold',fontSize:34,color:colors.ink,marginTop:14},bio:{fontFamily:'DMSans_400Regular',fontSize:14,lineHeight:21,color:colors.muted,textAlign:'center',maxWidth:320,marginTop:7},tags:{flexDirection:'row',gap:7,flexWrap:'wrap',justifyContent:'center',marginTop:14},tag:{fontFamily:'DMSans_700Bold',fontSize:9,letterSpacing:1,color:colors.forest,borderWidth:1,borderColor:colors.line,borderRadius:999,paddingVertical:7,paddingHorizontal:9},score:{marginTop:28,backgroundColor:colors.cream,borderRadius:22,padding:18,flexDirection:'row',justifyContent:'space-around'},scoreBig:{fontFamily:'Fraunces_700Bold',fontSize:27,color:colors.ink,textAlign:'center'},scoreSmall:{fontFamily:'DMSans_700Bold',fontSize:8,letterSpacing:1,color:colors.muted,textAlign:'center'},label:{fontFamily:'DMSans_700Bold',fontSize:9,letterSpacing:2,color:colors.terra,marginTop:27,marginBottom:9},row:{flexDirection:'row',gap:12,alignItems:'center',backgroundColor:colors.cream,padding:16,borderRadius:19},rowTitle:{fontFamily:'DMSans_700Bold',fontSize:13,color:colors.ink},rowSub:{fontFamily:'DMSans_400Regular',fontSize:11,color:colors.muted,marginTop:3},host:{backgroundColor:colors.forest,borderRadius:23,padding:18,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},hostK:{fontFamily:'DMSans_700Bold',fontSize:8,letterSpacing:1.5,color:colors.gold},hostT:{fontFamily:'Fraunces_700Bold',fontSize:25,color:colors.cream,marginTop:5},hostSub:{fontFamily:'DMSans_400Regular',fontSize:11,color:'#BFCCC5',marginTop:4},simple:{flexDirection:'row',gap:11,alignItems:'center',paddingVertical:15,borderBottomWidth:1,borderBottomColor:colors.line},simpleT:{flex:1,fontFamily:'DMSans_500Medium',fontSize:13,color:colors.ink}});
+export default function Profile() {
+  const router = useRouter();
+  const isVerified = useVerificationStore((s) => s.isVerified);
+
+  return (
+    <SafeAreaView style={s.safe}>
+      <ScrollView contentContainerStyle={s.page}>
+        <Brand />
+        <View style={s.profile}>
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=600&q=85",
+            }}
+            style={s.avatar}
+          />
+          <Text style={s.name}>Alex Morgan</Text>
+          <Text style={s.bio}>
+            Curious eater · architecture nerd · usually awake before sunrise
+            when travelling.
+          </Text>
+          <View style={s.tags}>
+            <Text style={s.tag}>ENGLISH</Text>
+            <Text style={s.tag}>FOOD</Text>
+            <Text style={s.tag}>ART</Text>
+            <Text style={s.tag}>LOW-KEY</Text>
+          </View>
+        </View>
+        <View style={s.score}>
+          <View>
+            <Text style={s.scoreBig}>4</Text>
+            <Text style={s.scoreSmall}>LOCAL DAYS</Text>
+          </View>
+          <View>
+            <Text style={s.scoreBig}>3</Text>
+            <Text style={s.scoreSmall}>BADGES</Text>
+          </View>
+          <View>
+            <Text style={s.scoreBig}>5.0</Text>
+            <Text style={s.scoreSmall}>GUEST RATING</Text>
+          </View>
+        </View>
+        {/* <DebugBar /> */}
+        <Text style={s.label}>TRUST & IDENTITY</Text>
+        <Pressable
+          onPress={() => navigation.navigate("/verify-identity")}
+          style={({ pressed }) => [s.row, pressed && { opacity: 0.6 }]}
+        >
+          <Ionicons
+            name="shield-checkmark"
+            size={22}
+            color={isVerified ? colors.forest : "A69E94"}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={s.rowTitle}>Traveller identity verified</Text>
+            <Text style={s.rowSub}>
+              {isVerified
+                ? "Hosts can see your verification before accepting."
+                : "Verify your identity so hosts can trust your profile."}
+            </Text>
+          </View>
+          <Ionicons
+            name={isVerified ? "checkmark-circle" : "close-circle"}
+            size={20}
+            color={isVerified ? colors.moss : colors.danger}
+          />
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={"#A69E94"}
+            style={{ marginLeft: 4 }}
+          />
+        </Pressable>
+        <Text style={s.label}>LOCAL SIDE</Text>
+        <Pressable
+          onPress={() => router.push("/host-dashboard")}
+          style={s.host}
+        >
+          <View>
+            <Text style={s.hostK}>LIVE DIFFERENTLY AT HOME</Text>
+            <Text style={s.hostT}>Switch to host mode</Text>
+            <Text style={s.hostSub}>
+              List a tiny local experience for 1–3 visitors.
+            </Text>
+          </View>
+          <Ionicons name="arrow-forward-circle" size={36} color={colors.gold} />
+        </Pressable>
+        <Text style={s.label}>SAFETY</Text>
+        {[
+          "Emergency contact",
+          "Blocked & reported users",
+          "Privacy & encrypted chats",
+        ].map((x, i) => (
+          <View key={x} style={s.simple}>
+            <Ionicons
+              name={
+                i === 0
+                  ? "call-outline"
+                  : i === 1
+                    ? "ban-outline"
+                    : "lock-closed-outline"
+              }
+              size={19}
+              color={colors.muted}
+            />
+            <Text style={s.simpleT}>{x}</Text>
+            <Ionicons name="chevron-forward" size={18} color="#A69E94" />
+          </View>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.paper },
+  page: { padding: 18, paddingBottom: 50 },
+  profile: { alignItems: "center", paddingTop: 32 },
+  avatar: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    borderWidth: 5,
+    borderColor: colors.cream,
+  },
+  name: {
+    fontFamily: "Fraunces_700Bold",
+    fontSize: 34,
+    color: colors.ink,
+    marginTop: 14,
+  },
+  bio: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
+    color: colors.muted,
+    textAlign: "center",
+    maxWidth: 320,
+    marginTop: 7,
+  },
+  tags: {
+    flexDirection: "row",
+    gap: 7,
+    flexWrap: "wrap",
+    justifyContent: "center",
+    marginTop: 14,
+  },
+  tag: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 9,
+    letterSpacing: 1,
+    color: colors.forest,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 999,
+    paddingVertical: 7,
+    paddingHorizontal: 9,
+  },
+  score: {
+    marginTop: 28,
+    backgroundColor: colors.cream,
+    borderRadius: 22,
+    padding: 18,
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  scoreBig: {
+    fontFamily: "Fraunces_700Bold",
+    fontSize: 27,
+    color: colors.ink,
+    textAlign: "center",
+  },
+  scoreSmall: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 8,
+    letterSpacing: 1,
+    color: colors.muted,
+    textAlign: "center",
+  },
+  label: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 9,
+    letterSpacing: 2,
+    color: colors.terra,
+    marginTop: 27,
+    marginBottom: 9,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+    backgroundColor: colors.cream,
+    padding: 16,
+    borderRadius: 19,
+  },
+  rowTitle: { fontFamily: "DMSans_700Bold", fontSize: 13, color: colors.ink },
+  rowSub: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 3,
+  },
+  host: {
+    backgroundColor: colors.forest,
+    borderRadius: 23,
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  hostK: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 8,
+    letterSpacing: 1.5,
+    color: colors.gold,
+  },
+  hostT: {
+    fontFamily: "Fraunces_700Bold",
+    fontSize: 25,
+    color: colors.cream,
+    marginTop: 5,
+  },
+  hostSub: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 11,
+    color: "#BFCCC5",
+    marginTop: 4,
+  },
+  simple: {
+    flexDirection: "row",
+    gap: 11,
+    alignItems: "center",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  simpleT: {
+    flex: 1,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 13,
+    color: colors.ink,
+  },
+});
