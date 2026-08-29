@@ -112,3 +112,18 @@ supabase/
 Add real authentication screens, payments/payouts, host identity/KYC provider, background checks where appropriate, credential-review tooling, push notifications, cancellation/refund rules, map provider, moderation, report/block flows, age/safety policy, production E2EE key lifecycle, analytics/observability, accessibility testing, localization, legal/privacy copy, and image licensing.
 
 The remote Unsplash photography in `mockData.ts` is prototype content only; replace it with licensed host/activity media before release.
+
+# How to run
+1. Ensure you have node downloaded
+https://nodejs.org/en/download
+
+
+2. Run these commands
+```
+node -v 
+npm i
+npx expo start
+```
+
+3. View locally 
+http://localhost:8081
