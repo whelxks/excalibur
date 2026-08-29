@@ -28,6 +28,22 @@ export type Host = {
   verified: boolean;
 };
 
+export type JournalBadge = {
+  id: string;
+  emoji: string;
+  title: string;
+  city: string;
+  note: string;
+  date: string;
+  accent: string;
+  activityId?: string;
+};
+
+export type BadgeType = {
+  emoji: string;
+  label: string;
+};
+
 export type FireflyResource = {
   id: string;
   name: string;

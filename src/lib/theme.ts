@@ -14,6 +14,8 @@ export const colors = {
   danger: '#C95145',
 };
 
+export const tapeColors = ['#E8BD67', '#D96F4C', '#526A58', '#C9A0A6'];
+
 export const shadow = {
   shadowColor: '#000',
   shadowOpacity: 0.12,

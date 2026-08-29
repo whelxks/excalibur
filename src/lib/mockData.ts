@@ -1,4 +1,4 @@
-import { Activity, FireflyResource } from './types';
+import { Activity, BadgeType, FireflyResource, JournalBadge } from './types';
 
 export const activities: Activity[] = [
   {
@@ -60,8 +60,21 @@ export const seedFirefly: FireflyResource[] = [
   { id:'NET_18', name:'Emergency Wi‑Fi point', type:'connectivity', status:'unavailable', updatedAt:Date.now()-3*60*1000, reports:11, confidence:0.98, distanceKm:1.8 }
 ];
 
-export const journalBadges = [
-  { id:'b1', emoji:'🍜', title:'After-hours Osaka', city:'Osaka', note:'Ren taught me to order from a ticket machine without panicking.', date:'18 AUG', accent:'#D96F4C' },
-  { id:'b2', emoji:'🏺', title:'Hands in Clay', city:'Sydney', note:'My cup is crooked. Keeping it forever.', date:'03 AUG', accent:'#526A58' },
-  { id:'b3', emoji:'🌶️', title:'Courtyard Cook', city:'Oaxaca', note:'The smoked chilli was the whole point.', date:'19 JUL', accent:'#E8BD67' },
+export const badgeCatalog: BadgeType[] = [
+  { emoji:'🍜', label:'Night Market Feast' },
+  { emoji:'🏺', label:'Hands in Clay' },
+  { emoji:'🌶️', label:'Spice Trail' },
+  { emoji:'📸', label:'Street Photographer' },
+  { emoji:'🌊', label:'Coastal Wander' },
+  { emoji:'⛰️', label:'Mountain Trek' },
+  { emoji:'🎨', label:'Local Artist' },
+  { emoji:'🕯️', label:'Candlelit Evening' },
+  { emoji:'🚲', label:'Two-Wheel Explorer' },
+  { emoji:'🎭', label:'Festival Night' },
+];
+
+export const journalBadges: JournalBadge[] = [
+  { id:'b1', emoji:'🍜', title:'After-hours Osaka', city:'Osaka', note:'Ren taught me to order from a ticket machine without panicking.', date:'18 AUG', accent:'#D96F4C', activityId:'osaka-ramen' },
+  { id:'b2', emoji:'🏺', title:'Hands in Clay', city:'Sydney', note:'My cup is crooked. Keeping it forever.', date:'03 AUG', accent:'#526A58', activityId:'sydney-ceramics' },
+  { id:'b3', emoji:'🌶️', title:'Courtyard Cook', city:'Oaxaca', note:'The smoked chilli was the whole point.', date:'19 JUL', accent:'#E8BD67', activityId:'oaxaca-kitchen' },
 ];
