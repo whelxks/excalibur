@@ -1,21 +1,52 @@
-import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import type { Channel, MessageResponse } from 'stream-chat';
+import { ChatHeader } from '@/components/chat/ChatHeader';
+import { Composer } from '@/components/chat/Composer';
+import { MessageList } from '@/components/chat/MessageList';
+import { QuickReplies } from '@/components/chat/QuickReplies';
+import { currentUser, ensureMatchChannel, matchFromId } from '@/lib/matches';
+import { hasStream, streamClient } from '@/lib/stream';
 import { colors } from '@/lib/theme';
-import { ensureChatKey } from '@/lib/crypto';
-import { ChatMessage, decryptForDisplay, loadEncryptedMessages, saveEncryptedMessage, seedDemoChat } from '@/lib/chat';
 
 export default function Chat(){
- const {id}=useLocalSearchParams<{id:string}>(); const router=useRouter(); const chatId=id||'demo'; const [key,setKey]=useState(''); const [messages,setMessages]=useState<ChatMessage[]>([]); const [text,setText]=useState('');
- useEffect(()=>{(async()=>{const k=await ensureChatKey(chatId);setKey(k);await seedDemoChat(chatId,k);setMessages(await loadEncryptedMessages(chatId))})()},[chatId]);
- async function send(){const value=text.trim();if(!value||!key)return;setText('');const m=await saveEncryptedMessage(chatId,'demo-tourist','You',value,key);setMessages(v=>[...v,m])}
- return <SafeAreaView style={s.safe}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
-  <View style={s.head}><Pressable onPress={()=>router.back()} style={s.back}><Ionicons name="arrow-back" size={21} color={colors.ink}/></Pressable><View style={{flex:1}}><Text style={s.kicker}>MATCHED GROUP · 2/3</Text><Text style={s.title}>Kyoto after dark</Text></View><View style={s.lock}><Ionicons name="lock-closed" size={13} color={colors.forest}/><Text style={s.lockT}>E2EE</Text></View></View>
-  <View style={s.banner}><Ionicons name="shield-checkmark" size={17} color={colors.forest}/><Text style={s.bannerT}>Messages are encrypted on your device before storage. The backend stores ciphertext + nonce, not readable message text.</Text></View>
-  <ScrollView contentContainerStyle={s.messages} showsVerticalScrollIndicator={false}>{messages.map(m=>{const mine=m.sender_id==='demo-tourist';return <View key={m.id} style={[s.msgWrap,mine&&{alignItems:'flex-end'}]}><Text style={s.sender}>{mine?'YOU':m.sender_name.toUpperCase()}</Text><View style={[s.bubble,mine?s.mine:s.theirs]}><Text style={[s.msg,mine&&{color:colors.cream}]}>{key?decryptForDisplay(m,key):'Decrypting…'}</Text></View><Text style={s.time}>{new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</Text></View>})}</ScrollView>
-  <View style={s.composer}><Pressable style={s.add}><Ionicons name="add" size={22} color={colors.muted}/></Pressable><TextInput value={text} onChangeText={setText} onSubmitEditing={send} placeholder="Message the group…" placeholderTextColor="#999187" style={s.input}/><Pressable onPress={send} style={s.send}><Ionicons name="arrow-up" size={20} color={colors.cream}/></Pressable></View>
+ const {id}=useLocalSearchParams<{id:string}>(); const router=useRouter();
+ const match=matchFromId(id||'');
+ const [channel,setChannel]=useState<Channel|null>(null);
+ const [messages,setMessages]=useState<MessageResponse[]>([]);
+ const [text,setText]=useState(''); const [error,setError]=useState<string|null>(null);
+ const inputRef=useRef<TextInput>(null);
+
+ useEffect(()=>{let live=true;(async()=>{
+   if(!hasStream){setError('Add EXPO_PUBLIC_STREAM_API_KEY to .env to enable chat.');return}
+   if(!match){setError('This match no longer exists.');return}
+   try{
+     const ch=await ensureMatchChannel(match); if(!live||!ch)return;
+     setChannel(ch); setMessages([...ch.state.messages] as MessageResponse[]);
+     await ch.markRead();
+   }catch(e:any){if(live)setError(e?.message??'Could not open this conversation.')}
+ })();return()=>{live=false}},[id]);
+
+ // Live updates. Stream pushes new messages over the websocket connection.
+ useEffect(()=>{if(!channel)return;
+   const handler=()=>{setMessages([...channel.state.messages] as MessageResponse[]); channel.markRead().catch(()=>{})};
+   channel.on('message.new',handler); channel.on('message.updated',handler); channel.on('message.deleted',handler);
+   return()=>{channel.off('message.new',handler); channel.off('message.updated',handler); channel.off('message.deleted',handler)};
+ },[channel]);
+
+ async function send(){const value=text.trim(); if(!value||!channel)return; setText('');
+   try{await channel.sendMessage({text:value})}catch(e:any){setError(e?.message??'Message failed to send.')}}
+
+ if(error) return <SafeAreaView style={s.safe}><View style={s.errorWrap}><Text style={s.errorBig}>Chat unavailable</Text><Text style={s.errorSub}>{error}</Text></View></SafeAreaView>;
+
+ return <SafeAreaView style={s.safe} edges={['top']}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined} keyboardVerticalOffset={0}>
+  <ChatHeader name={match?.host.name??''} image={match?.host.image} activityName={match?.activityName??''} city={match?.city??''}
+    onBack={()=>router.back()} onPressProfile={()=>match&&router.push(`/host/${match.host.id}`)}/>
+  <MessageList messages={messages} currentUserId={streamClient?.userID??currentUser.id}/>
+  <QuickReplies onPick={t=>{setText(t);inputRef.current?.focus()}}/>
+  <Composer ref={inputRef} value={text} onChangeText={setText} onSend={send}/>
  </KeyboardAvoidingView></SafeAreaView>
 }
-const s=StyleSheet.create({safe:{flex:1,backgroundColor:colors.paper},head:{paddingHorizontal:14,paddingVertical:12,flexDirection:'row',gap:12,alignItems:'center',borderBottomWidth:1,borderBottomColor:colors.line},back:{width:42,height:42,borderRadius:21,backgroundColor:colors.cream,alignItems:'center',justifyContent:'center'},kicker:{fontFamily:'DMSans_700Bold',fontSize:8,letterSpacing:1.4,color:colors.terra},title:{fontFamily:'Fraunces_700Bold',fontSize:21,color:colors.ink,marginTop:1},lock:{flexDirection:'row',gap:4,alignItems:'center',padding:8,borderRadius:999,backgroundColor:'#DDE5DF'},lockT:{fontFamily:'DMSans_700Bold',fontSize:8,letterSpacing:1,color:colors.forest},banner:{margin:14,marginBottom:0,flexDirection:'row',gap:8,backgroundColor:'#E4EADF',borderRadius:14,padding:11},bannerT:{flex:1,fontFamily:'DMSans_400Regular',fontSize:10,lineHeight:15,color:colors.muted},messages:{padding:16,paddingBottom:30,gap:18},msgWrap:{alignItems:'flex-start'},sender:{fontFamily:'DMSans_700Bold',fontSize:8,letterSpacing:1.3,color:colors.muted,marginBottom:4},bubble:{maxWidth:'82%',paddingHorizontal:15,paddingVertical:12,borderRadius:18},mine:{backgroundColor:colors.forest,borderBottomRightRadius:5},theirs:{backgroundColor:colors.cream,borderBottomLeftRadius:5,borderWidth:1,borderColor:'#E5DBCF'},msg:{fontFamily:'DMSans_400Regular',fontSize:14,lineHeight:20,color:colors.ink},time:{fontFamily:'DMSans_500Medium',fontSize:8,color:'#A39B91',marginTop:4},composer:{flexDirection:'row',gap:8,alignItems:'center',padding:12,paddingBottom:18,borderTopWidth:1,borderTopColor:colors.line,backgroundColor:'#FFF9EF'},add:{width:40,height:40,borderRadius:20,borderWidth:1,borderColor:colors.line,alignItems:'center',justifyContent:'center'},input:{flex:1,height:46,borderRadius:18,backgroundColor:colors.paper2,paddingHorizontal:15,fontFamily:'DMSans_400Regular',color:colors.ink},send:{width:44,height:44,borderRadius:22,backgroundColor:colors.terra,alignItems:'center',justifyContent:'center'}});
+const s=StyleSheet.create({safe:{flex:1,backgroundColor:colors.paper},errorWrap:{flex:1,alignItems:'center',justifyContent:'center',padding:30},errorBig:{fontFamily:'Fraunces_700Bold',fontSize:26,color:colors.ink},errorSub:{fontFamily:'DMSans_400Regular',fontSize:13,lineHeight:19,color:colors.muted,textAlign:'center',marginTop:8}});

@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { HostCard } from '@/components/HostCard';
 import { activities } from '@/lib/mockData';
+import { buildMatch, ensureMatchChannel } from '@/lib/matches';
 import { colors } from '@/lib/theme';
 
 const W=Dimensions.get('window').width;
@@ -13,7 +14,14 @@ export default function SwipeHosts(){
  const host=a.hosts[index%a.hosts.length];
  const rotate=pan.x.interpolate({inputRange:[-W/2,0,W/2],outputRange:['-8deg','0deg','8deg']});
  const stampYes=pan.x.interpolate({inputRange:[0,W*.25],outputRange:[0,1],extrapolate:'clamp'}); const stampNo=pan.x.interpolate({inputRange:[-W*.25,0],outputRange:[1,0],extrapolate:'clamp'});
- const finish=(accepted:boolean)=>{Animated.timing(pan,{toValue:{x:accepted?W*1.3:-W*1.3,y:20},duration:220,useNativeDriver:true}).start(()=>{pan.setValue({x:0,y:0}); if(accepted) router.push(`/chat/demo-${a.id}`); else setIndex(i=>i+1);});};
+ // A right swipe is a match: create (or reopen) the Stream channel keyed by
+ // the match ID, then drop straight into the conversation.
+ const finish=(accepted:boolean)=>{Animated.timing(pan,{toValue:{x:accepted?W*1.3:-W*1.3,y:20},duration:220,useNativeDriver:true}).start(async()=>{pan.setValue({x:0,y:0});
+  if(!accepted){setIndex(i=>i+1);return}
+  const match=buildMatch(a,host);
+  try{await ensureMatchChannel(match)}catch(e:any){console.warn('[stream] could not open match channel:',e?.message)}
+  router.push(`/chat/${match.id}`);
+ });};
  const responder=useMemo(()=>PanResponder.create({onMoveShouldSetPanResponder:(_,g)=>Math.abs(g.dx)>8,onPanResponderMove:Animated.event([null,{dx:pan.x,dy:pan.y}],{useNativeDriver:false}),onPanResponderRelease:(_,g)=>{if(g.dx>90)finish(true);else if(g.dx<-90)finish(false);else Animated.spring(pan,{toValue:{x:0,y:0},useNativeDriver:true}).start();}}),[host.id]);
  return <View style={s.page}>
   <View style={s.top}><Pressable onPress={()=>router.back()} style={s.round}><Ionicons name="arrow-back" size={20} color={colors.ink}/></Pressable><View style={{alignItems:'center'}}><Text style={s.kicker}>WHO FEELS RIGHT?</Text><Text style={s.activity} numberOfLines={1}>{a.title}</Text></View><View style={s.round}><Ionicons name="shield-checkmark" size={19} color={colors.forest}/></View></View>
